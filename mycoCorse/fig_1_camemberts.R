@@ -1,6 +1,8 @@
 library(dplyr)
 library(ggplot2)
 library(ggpubr)
+library(tidyverse)
+
 phy_fam <- invent %>%
   select(Phylum, Famille) %>%
   distinct()
