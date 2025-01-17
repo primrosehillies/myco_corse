@@ -1,0 +1,805 @@
+---
+title: "Myco_Corse"
+author: "Malo"
+date: "2024-09-04"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+# library(betareg)
+# library(emmeans)
+# library(MuMIn)
+# options(na.action = "na.fail")
+# library(lmtest)
+library(ggplot2)
+library(ggpubr)
+library(ggsignif)
+library(cowplot)
+library(investr)
+library(dplyr)
+library(tidyr)
+# library(lme4)
+library(vegan)
+library(plotly)
+library(stats)
+
+
+
+library(readxl)
+library(psych)
+library(tidyr)
+library(ggplot2)
+library(dplyr)
+library(ade4)
+library(VIM)
+library(vegan)
+library(reshape2)
+library(plotly)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(nlme)
+library(MuMIn)
+library(DHARMa)
+library(tibble)
+
+
+library(igraph)
+library(ggraph)
+library(networkD3)
+```
+
+Importing dataset
+```{r}
+invent <- read.csv("inventory3.csv", header = T, stringsAsFactors = T)
+
+
+summary(invent)
+str(invent)
+
+invent$Identifiant.site <- as.factor(invent$Identifiant.site)
+str(invent$Identifiant.site)
+
+plot(invent$Essence)
+plot(invent$Famille)
+plot(invent$Phylum)
+
+
+count_species <- invent %>%
+  group_by(Taxon.fonge) %>%
+  summarize(count = n())
+
+```
+
+
+#Camemberts
+##Par phylum
+
+```{r}
+
+count_phylum <- invent %>%
+  group_by(Phylum) %>%
+  summarize(count =n())
+
+invent_s7 <- invent[invent$Identifiant.site == "7",]
+count_phylum_s7 <- invent_s7 %>%
+  group_by(Phylum) %>%
+  summarize(count =n())
+
+invent_s14 <- invent[invent$Identifiant.site == "14",]
+count_phylum_s14 <- invent_s14 %>%
+  group_by(Phylum) %>%
+  summarize(count =n())
+
+invent_s15 <- invent[invent$Identifiant.site == "15",]
+count_phylum_s15 <- invent_s15 %>%
+  group_by(Phylum) %>%
+  summarize(count =n())
+
+
+#####Tous sites confondus####
+count_phylum <- count_phylum %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+
+plot_phy_all <- ggplot(count_phylum, aes(x="", y=count, fill=Phylum)) +
+  ggtitle("Tous sites confondus") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+#####Site 7####
+count_phylum_s7 <- count_phylum_s7 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+plot_phy_7 <- ggplot(count_phylum_s7, aes(x="", y=count, fill=Phylum)) +
+  ggtitle("Site 7") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+#####Site 14####
+count_phylum_s14 <- count_phylum_s14 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+plot_phy_14 <- ggplot(count_phylum_s14, aes(x="", y=count, fill=Phylum)) +
+  ggtitle("Site 14") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+#####Site 15####
+count_phylum_s15 <- count_phylum_s15 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+plot_phy_15 <- ggplot(count_phylum_s15, aes(x="", y=count, fill=Phylum)) +
+  ggtitle("Site 15") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+plot_phy <- ggarrange(plot_phy_all, plot_phy_7, plot_phy_14, plot_phy_15, ncol = 2, nrow = 2)
+plot_phy
+```
+
+##Par famille
+```{r}
+count_family <- invent %>%
+  group_by(Famille) %>%
+  summarize(count =n())
+
+count_family <- count_family %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+
+count_family_s7 <- invent_s7 %>%
+  group_by(Famille) %>%
+  summarize(count =n())
+count_family_s7 <- count_family_s7 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+
+count_family_s14 <- invent_s14 %>%
+  group_by(Famille) %>%
+  summarize(count =n())
+count_family_s14 <- count_family_s14 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+
+count_family_s15 <- invent_s15 %>%
+  group_by(Famille) %>%
+  summarize(count =n())
+count_family_s15 <<- count_family_s15 %>%
+  mutate(percentage = round((count / sum(count)) * 100,2))
+
+
+#####Tous sites confondus####
+threshold_all <- 5
+
+count_family <- count_family %>%
+  mutate(Famille = as.character(Famille)) %>%
+  arrange(desc(count)) %>%
+  mutate(Famille = ifelse(percentage < threshold_all, "Other", Famille)) %>%
+  group_by(Famille) %>%
+  summarise(count = sum(count), percentage = sum(percentage)) %>%
+  arrange(desc(count))
+
+count_family <- count_family %>%
+  mutate(Famille = factor(Famille, levels = c(setdiff(Famille, "Other"), "Other")))
+
+count_family <- count_family %>%
+  arrange(desc(Famille != "Other"), desc(count))
+
+
+plot_fam_all <- ggplot(count_family, aes(x="", y=count, fill=Famille)) +
+  ggtitle("Tous sites confondus") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+#####Site 7####
+threshold_7 <- 3
+
+count_family_s7 <- count_family_s7 %>%
+  mutate(Famille = as.character(Famille)) %>%
+  arrange(desc(count)) %>%
+  mutate(Famille = ifelse(percentage < threshold_7, "Other", Famille)) %>%
+  group_by(Famille) %>%
+  summarise(count = sum(count), percentage = sum(percentage)) %>%
+  arrange(desc(count))
+
+
+plot_fam_7 <- ggplot(count_family_s7, aes(x="", y=count, fill=Famille)) +
+  ggtitle("Site 7") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+#####Site 14####
+
+threshold_14 <- 5
+
+count_family_s14 <- count_family_s14 %>%
+  mutate(Famille = as.character(Famille)) %>%
+  arrange(desc(count)) %>%
+  mutate(Famille = ifelse(percentage < threshold_14, "Other", Famille)) %>%
+  group_by(Famille) %>%
+  summarise(count = sum(count), percentage = sum(percentage)) %>%
+  arrange(desc(count))
+
+plot_fam_14 <- ggplot(count_family_s14, aes(x="", y=count, fill=Famille)) +
+  ggtitle("Site 14") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+#####Site 15####
+threshold_15 <- 5
+
+count_family_s15 <- count_family_s15 %>%
+  mutate(Famille = as.character(Famille)) %>%
+  arrange(desc(count)) %>%
+  mutate(Famille = ifelse(percentage < threshold_15, "Other", Famille)) %>%
+  group_by(Famille) %>%
+  summarise(count = sum(count), percentage = sum(percentage)) %>%
+  arrange(desc(count))
+
+plot_fam_15 <- ggplot(count_family_s15, aes(x="", y=count, fill=Famille)) +
+  ggtitle("Site 15") +
+  geom_bar(stat="identity", width=1) +
+  coord_polar("y", start=0) +
+  geom_text(aes(label = paste0(percentage, "%")), position = position_stack(vjust=0.5)) +
+  labs(x = NULL, y = NULL, fill = NULL)
+
+
+
+plot_fam <- ggarrange(plot_fam_all, plot_fam_7, plot_fam_14, plot_fam_15, ncol = 2, nrow = 2)
+plot_fam
+
+```
+
+
+
+
+#Indices de dissimilarité
+##Jaccard, Sorensen, Sokal & Michener
+```{r}
+presence_absence <- invent %>%
+  mutate(Identifiant.site = paste0("S", Identifiant.site)) %>%
+  distinct(Identifiant.site, Taxon.fonge) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = present, values_fill = list(present = 0))
+
+presence_absence <- as.data.frame(presence_absence)
+row.names(presence_absence) <- presence_absence$Identifiant.site
+presence_absence$Identifiant.site <- NULL
+
+
+#Jaccard (asymétrique)
+jac <- vegdist(presence_absence, "jaccard")
+jac
+
+# jac <- as.matrix(jac)
+# jac <- 1 - jac
+# plot_ly(
+#   x = colnames(jac),
+#   y = rownames(jac),
+#   z = jac,
+#   type = "heatmap",
+#   colorscale = "Portland"
+# ) %>%
+#   layout(title = 'Jaccard')
+
+#Sokal & Michenier (symétrique)
+sok<-(dist.binary(presence_absence, method = 2))^2
+sok
+#sok <- as.matrix(sok)
+# sok <- 1 - sok
+# plot_ly(
+#   x = colnames(sok),
+#   y = rownames(sok),
+#   z = sok,
+#   type = "heatmap",
+#   colorscale = "Portland"
+# ) %>%
+#   layout(title = 'Sokal-Michener')
+
+
+#Sorensen
+sor <- vegdist(presence_absence, "bray")
+sor
+```
+
+
+#Diversité alpha, beta, gamma
+```{r}
+pres_abs_long <- read.csv("pres_abs_long_2.csv", header = T, stringsAsFactors = T, row.names = "Species")
+
+s7 <- sum(pres_abs_long$S7)
+s14 <- sum(pres_abs_long$S14)
+s15 <- sum(pres_abs_long$S15)
+
+alpha <- (s7 + s14 + s15) / 3
+alpha
+#En moyenne, chaque site a 73,3 espèces
+
+gamma <- 169
+#Au total il y a 169 espèces
+
+beta_mult <- gamma / alpha
+beta_add <- gamma - alpha
+
+beta_mult
+# = The total number of species is 2.3 times higher than the average species per site
+
+beta_add
+# = There is on average 95 species which are not seen in a randomly-chose site
+```
+
+#Indices de diversité
+
+```{r}
+
+count_s7 <- invent_s7 %>%
+  group_by(Taxon.fonge) %>%
+  summarize(count = n())
+count_s7_wide <- count_s7 %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = count, values_fill = 0)
+count_s7_wide$S7 <- "S7"
+count_s7_wide <- as.data.frame(count_s7_wide)
+row.names(count_s7_wide) <- count_s7_wide$S7
+count_s7_wide$S7 <- NULL
+
+
+count_s14 <- invent_s14 %>%
+  group_by(Taxon.fonge) %>%
+  summarize(count = n())
+count_s14_wide <- count_s14 %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = count, values_fill = 0)
+count_s14_wide$s14 <- "S14"
+count_s14_wide <- as.data.frame(count_s14_wide)
+row.names(count_s14_wide) <- count_s14_wide$s14
+count_s14_wide$s14 <- NULL
+
+count_s15 <- invent_s15 %>%
+  group_by(Taxon.fonge) %>%
+  summarize(count = n())
+count_s15_wide <- count_s15 %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = count, values_fill = 0)
+count_s15_wide$s15 <- "S15"
+count_s15_wide <- as.data.frame(count_s15_wide)
+row.names(count_s15_wide) <- count_s15_wide$s15
+count_s15_wide$s15 <- NULL
+
+count_all_sites <- bind_rows(count_s7_wide, count_s14_wide, count_s15_wide) %>%
+  replace(is.na(.), 0) 
+
+#Species richness
+richness <- specnumber(count_all_sites)
+print(richness)
+#Shannon
+shannon <- vegan::diversity(count_all_sites, index = "shannon")
+print(shannon)
+#Simpson
+simpson <- vegan::diversity(count_all_sites, index = "simpson")
+print(simpson)
+
+
+recap_indices <- tibble(
+  Site = paste("Site", c("7", "14", "15")),
+  Species_Richness = richness,
+  Shannon_Index = shannon,
+  Simpson_Index = simpson
+)
+
+recap_indices
+
+```
+
+#Réseau projeté
+
+```{r}
+essence_presence <- invent %>%
+  mutate(Identifiant.site = paste0("S", Identifiant.site)) %>%
+  distinct(Essence, Taxon.fonge) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = present, values_fill = list(present = 0))
+essence_presence <- as.data.frame(essence_presence)
+
+row.names(essence_presence) <- essence_presence$Essence
+essence_presence$Essence <- NULL
+
+essence_presence_matrix <- as.matrix(essence_presence)
+
+double_presence <- essence_presence_matrix %*% t(essence_presence_matrix)
+
+# 
+essence_presence$species <- rownames(essence_presence)
+ess_pres_long <- essence_presence %>%
+  pivot_longer(cols=1:169, names_to="fungi",
+               values_to="presence")
+# 
+# double_presence_df <- ess_pres_long %>%
+#   filter(presence == 1) %>%
+#   inner_join(ess_pres_long %>% filter(presence == 1),
+#               by = "fungi",
+#               suffix = c("_1", "_2")) %>%
+#   group_by(species_1, species_2) %>%
+#   summarize(double_presence = n(), .groups = 'drop')
+#
+# ## all of this is the same thing as double_presence <- essence_presence_matrix %*% t(essence_presence_matrix)
+
+#S7
+essence_presence_s7 <- invent_s7 %>%
+  mutate(Identifiant.site = paste0("S", Identifiant.site)) %>%
+  distinct(Essence, Taxon.fonge) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = present, values_fill = list(present = 0))
+essence_presence_s7 <- as.data.frame(essence_presence_s7)
+
+row.names(essence_presence_s7) <- essence_presence_s7$Essence
+essence_presence_s7$Essence <- NULL
+
+essence_presence_matrix_s7 <- as.matrix(essence_presence_s7)
+double_presence_s7 <- essence_presence_matrix_s7 %*% t(essence_presence_matrix_s7)
+
+#S14
+essence_presence_s14 <- invent_s14 %>%
+  mutate(Identifiant.site = paste0("S", Identifiant.site)) %>%
+  distinct(Essence, Taxon.fonge) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = present, values_fill = list(present = 0))
+essence_presence_s14 <- as.data.frame(essence_presence_s14)
+
+row.names(essence_presence_s14) <- essence_presence_s14$Essence
+essence_presence_s14$Essence <- NULL
+
+essence_presence_matrix_s14 <- as.matrix(essence_presence_s14)
+double_presence_s14 <- essence_presence_matrix_s14 %*% t(essence_presence_matrix_s14)
+
+#S15
+essence_presence_s15 <- invent_s15 %>%
+  mutate(Identifiant.site = paste0("S", Identifiant.site)) %>%
+  distinct(Essence, Taxon.fonge) %>%
+  mutate(present = 1) %>%
+  pivot_wider(names_from = Taxon.fonge, values_from = present, values_fill = list(present = 0))
+essence_presence_s15 <- as.data.frame(essence_presence_s15)
+
+row.names(essence_presence_s15) <- essence_presence_s15$Essence
+essence_presence_s15$Essence <- NULL
+
+essence_presence_matrix_s15 <- as.matrix(essence_presence_s15)
+double_presence_s15 <- essence_presence_matrix_s15 %*% t(essence_presence_matrix_s15)
+
+##Représentations:
+
+#####Tous sites confondus :####
+graph_all <- graph.adjacency(double_presence, weighted = TRUE)
+
+ggraph(graph_all, layout = 'linear', circular = TRUE) + 
+  geom_edge_arc(aes(color = weight, size = abs(weight))) + 
+  geom_node_text(aes(label = name, angle = node_angle(x, y)), hjust = -0.5) +
+  geom_node_point(shape = 21, size = 4, aes(fill = name)) +
+  theme_graph() +
+  scale_edge_color_gradientn(colours = c('red4', 'gold', 'green4')) +
+  coord_fixed(xlim = c(-1.4, 1.4), ylim = c(-1.4, 1.4)) +
+  guides(fill = guide_none())
+
+
+#####S7####
+graph_s7 <- graph.adjacency(double_presence_s7, weighted = TRUE)
+
+ggraph(graph_s7, layout = 'linear', circular = TRUE) + 
+  geom_edge_arc(aes(color = weight, size = abs(weight))) + 
+  geom_node_text(aes(label = name, angle = node_angle(x, y)), hjust = -0.5) +
+  geom_node_point(shape = 21, size = 4, aes(fill = name)) +
+  theme_graph() +
+  scale_edge_color_gradientn(colours = c('red4', 'gold', 'green4')) +
+  coord_fixed(xlim = c(-1.4, 1.4), ylim = c(-1.4, 1.4)) +
+  guides(fill = guide_none())
+
+#####S14####
+graph_s14 <- graph.adjacency(double_presence_s14, weighted = TRUE)
+
+ggraph(graph_s14, layout = 'linear', circular = TRUE) + 
+  geom_edge_arc(aes(color = weight, size = abs(weight))) + 
+  geom_node_text(aes(label = name, angle = node_angle(x, y)), hjust = -0.5) +
+  geom_node_point(shape = 21, size = 4, aes(fill = name)) +
+  theme_graph() +
+  scale_edge_color_gradientn(colours = c('red4', 'gold', 'green4')) +
+  coord_fixed(xlim = c(-1.4, 1.4), ylim = c(-1.4, 1.4)) +
+  guides(fill = guide_none())
+
+#####S15####
+graph_s15 <- graph.adjacency(double_presence_s15, weighted = TRUE)
+
+ggraph(graph_s15, layout = 'linear', circular = TRUE) + 
+  geom_edge_arc(aes(color = weight, size = abs(weight))) + 
+  geom_node_text(aes(label = name, angle = node_angle(x, y)), hjust = -0.5) +
+  geom_node_point(shape = 21, size = 4, aes(fill = name)) +
+  theme_graph() +
+  scale_edge_color_gradientn(colours = c('red4', 'gold', 'green4')) +
+  coord_fixed(xlim = c(-1.4, 1.4), ylim = c(-1.4, 1.4)) +
+  guides(fill = guide_none())
+```
+
+
+#Réseau d'interaction
+```{r}
+
+#####Tous sites confondus####
+edge <- ess_pres_long %>%
+  filter(presence == 1) %>%
+  select(-presence) %>%
+  rename(from = species, to = fungi)
+
+net_1 <- graph_from_data_frame(d = edge, directed = FALSE)
+
+##LAYOUT
+# layout <- layout_with_drl(net_1)
+# layout <- layout_with_fr(net_1)
+# layout <- layout_with_kk(net_1) # pretty good
+# layout <- layout_with_graphopt(net_1)
+layout <- layout_with_fr(net_1, niter = 10000)
+
+#COLOR
+nodes <- unique(c(edge$from, edge$to))
+colors <- rep(NA, length(nodes))
+names(colors) <- nodes
+
+colors[names(colors) %in% edge$from] <- "red" 
+colors[names(colors) %in% edge$to] <- "blue"    
+
+V(net_1)$color <- colors[as.character(V(net_1)$name)]
+#SIZE
+V(net_1)$size <- ifelse(V(net_1)$name %in% edge$from, 10, 2)
+V(net_1)$degree <- degree(net_1)
+# #GROWING SIZE
+# max_degree <- max(V(net_1)$degree)
+# min_degree <- min(V(net_1)$degree)
+# label_size_range <- c(0.5, 50)  
+
+# V(net_1)$label_size <- rescale(V(net_1)$degree, to = label_size_range)
+
+#NAMES
+V(net_1)$label <- ifelse(V(net_1)$degree >= 7, V(net_1)$name, "")
+#PLOT
+plot(net_1, layout = layout,
+     main = "Réseau d'interaction tous sites confondus",
+)
+
+inter_net <- simpleNetwork(edge)
+inter_net
+
+#####Site 7####
+essence_presence_s7 <- as.data.frame(essence_presence_matrix_s7)
+
+essence_presence_s7$species <- rownames(essence_presence_s7)
+ess_pres_long_s7 <- essence_presence_s7 %>%
+  pivot_longer(cols=1:60, names_to="fungi",
+               values_to="presence")
+
+
+edge_s7 <- ess_pres_long_s7 %>%
+  filter(presence == 1) %>%
+  select(-presence) %>%
+  rename(from = species, to = fungi)
+
+net_s7 <- graph_from_data_frame(d = edge_s7, directed = FALSE)
+
+layout_s7 <- layout_with_fr(net_s7, niter = 10000)
+
+#COLOR
+nodes_s7 <- unique(c(edge_s7$from, edge_s7$to))
+colors_s7 <- rep(NA, length(nodes_s7))
+names(colors_s7) <- nodes_s7
+
+colors_s7[names(colors_s7) %in% edge_s7$from] <- "red"
+colors_s7[names(colors_s7) %in% edge_s7$to] <- "blue"    
+
+
+V(net_s7)$color_s7 <- colors_s7[as.character(V(net_s7)$name)]
+#SIZE
+V(net_s7)$size <- ifelse(V(net_s7)$name %in% edge_s7$from, 10, 2)
+V(net_s7)$degree <- degree(net_s7)
+# #GROWING SIZE
+# max_degree <- max(V(net_1)$degree)
+# min_degree <- min(V(net_1)$degree)
+# label_size_range <- c(0.5, 50)  # Minimum and maximum label sizes
+# 
+# # Calculate label sizes based on degree
+# V(net_1)$label_size <- rescale(V(net_1)$degree, to = label_size_range)
+
+#NAMES
+V(net_s7)$label <- ifelse(V(net_s7)$degree >= 7, V(net_s7)$name, "")
+#PLOT
+plot(net_s7, layout = layout_s7,
+     main = "Réseau d'interaction dans le site 7",
+)
+
+
+#####Site 14####
+essence_presence_s14 <- as.data.frame(essence_presence_matrix_s14)
+
+essence_presence_s14$species <- rownames(essence_presence_s14)
+ess_pres_long_s14 <- essence_presence_s14 %>%
+  pivot_longer(cols=1:65, names_to="fungi",
+               values_to="presence")
+
+
+edge_s14 <- ess_pres_long_s14 %>%
+  filter(presence == 1) %>%
+  select(-presence) %>%
+  rename(from = species, to = fungi)
+
+net_s14 <- graph_from_data_frame(d = edge_s14, directed = FALSE)
+
+layout_s14 <- layout_with_fr(net_s14, niter = 10000)
+
+#COLOR
+nodes_s14 <- unique(c(edge_s14$from, edge_s14$to))
+colors_s14 <- rep(NA, length(nodes_s14))
+names(colors_s14) <- nodes_s14
+
+colors_s14[names(colors_s14) %in% edge_s14$from] <- "red"
+colors_s14[names(colors_s14) %in% edge_s14$to] <- "blue"    
+
+
+V(net_s14)$color_s14 <- colors_s14[as.character(V(net_s14)$name)]
+#SIZE
+V(net_s14)$size <- ifelse(V(net_s14)$name %in% edge_s14$from, 10, 2)
+V(net_s14)$degree <- degree(net_s14)
+# #GROWING SIZE
+# max_degree <- max(V(net_1)$degree)
+# min_degree <- min(V(net_1)$degree)
+# label_size_range <- c(0.5, 50)  # Minimum and maximum label sizes
+# 
+# # Calculate label sizes based on degree
+# V(net_1)$label_size <- rescale(V(net_1)$degree, to = label_size_range)
+
+#NAMES
+V(net_s14)$label <- ifelse(V(net_s14)$degree >= 7, V(net_s14)$name, "")
+#PLOT
+plot(net_s14, layout = layout_s14,
+     main = "Réseau d'interaction dans le site 14",
+)
+
+
+#####Site 15####
+essence_presence_s15 <- as.data.frame(essence_presence_matrix_s15)
+
+essence_presence_s15$species <- rownames(essence_presence_s15)
+ess_pres_long_s15 <- essence_presence_s15 %>%
+  pivot_longer(cols=1:95, names_to="fungi",
+               values_to="presence")
+
+
+edge_s15 <- ess_pres_long_s15 %>%
+  filter(presence == 1) %>%
+  select(-presence) %>%
+  rename(from = species, to = fungi)
+
+net_s15 <- graph_from_data_frame(d = edge_s15, directed = FALSE)
+
+layout_s15 <- layout_with_fr(net_s15, niter = 10000)
+
+#COLOR
+nodes_s15 <- unique(c(edge_s15$from, edge_s15$to))
+colors_s15 <- rep(NA, length(nodes_s15))
+names(colors_s15) <- nodes_s15
+
+colors_s15[names(colors_s15) %in% edge_s15$from] <- "red"
+colors_s15[names(colors_s15) %in% edge_s15$to] <- "blue"    
+
+
+V(net_s15)$color_s15 <- colors_s15[as.character(V(net_s15)$name)]
+#SIZE
+V(net_s15)$size <- ifelse(V(net_s15)$name %in% edge_s15$from, 10, 2)
+V(net_s15)$degree <- degree(net_s15)
+# #GROWING SIZE
+# max_degree <- max(V(net_1)$degree)
+# min_degree <- min(V(net_1)$degree)
+# label_size_range <- c(0.5, 50)  # Minimum and maximum label sizes
+# 
+# # Calculate label sizes based on degree
+# V(net_1)$label_size <- rescale(V(net_1)$degree, to = label_size_range)
+
+#NAMES
+V(net_s15)$label <- ifelse(V(net_s15)$degree >= 7, V(net_s15)$name, "")
+#PLOT
+plot(net_s15, layout = layout_s15,
+     main = "Réseau d'interaction dans le site 15",
+)
+```
+
+
+
+#Répartition des degrés des essences
+
+```{r}
+row_sums <- rowSums(essence_presence == 1)
+row_sums_s7 <- rowSums(essence_presence_s7 == 1)
+row_sums_s14 <- rowSums(essence_presence_s14 == 1)
+row_sums_s15 <- rowSums(essence_presence_s15 == 1)
+
+
+kp_all <- data.frame(species = rownames(essence_presence), all = row_sums, row.names = NULL)
+kp_s7 <- data.frame(species = rownames(essence_presence_s7), s7 = row_sums_s7, row.names = NULL)
+kp_s14 <- data.frame(species = rownames(essence_presence_s14), s14 = row_sums_s14, row.names = NULL)
+kp_s15 <- data.frame(species = rownames(essence_presence_s15), s15 = row_sums_s15, row.names = NULL)
+
+kp <- kp_s7 %>%
+  full_join(kp_s14, by = "species") %>%
+  full_join(kp_s15, by = "species")
+
+kp[is.na(kp)] <- 0
+
+
+kp_long <- kp %>%
+  pivot_longer(cols = c(s7, s14, s15), names_to = "Site", values_to = "Value")
+
+
+ggplot(kp_long, aes(x = species, y = Value, fill = Site)) +
+  geom_bar(stat = "identity", position = "dodge") +  
+  labs(x = "Species", y = "Count", title = "Nombre de degrés par espèce") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))  
+
+
+```
+
+
+
+#Répartition des degrés
+
+```{r}
+colsums_s7 <- colSums(essence_presence_s7 == 1)
+colsums_s14 <- colSums(essence_presence_s14 == 1)
+colsums_s15 <- colSums(essence_presence_s15 == 1)
+colsums_all <- colSums(essence_presence == 1)
+
+kf_s7 <- data.frame(species = colnames(essence_presence_s7), s7 = colsums_s7, row.names = NULL)
+kf_s14 <- data.frame(species = colnames(essence_presence_s14), s14 = colsums_s14, row.names = NULL)
+kf_s15 <- data.frame(species = colnames(essence_presence_s15), s15 = colsums_s15, row.names = NULL)
+kf_all <- data.frame(species = colnames(essence_presence), all = colsums_all, row.names = NULL)
+
+
+kf <- kf_s7 %>%
+  full_join(kf_s14, by = "species") %>%
+  full_join(kf_s15, by = "species") #%>%
+  #full_join(kf_all, by = "species")
+
+kf[is.na(kf)] <- 0
+
+
+kf_long <- kf %>%
+  pivot_longer(cols = c(s7, s14, s15), names_to = "Site", values_to = "Value")
+
+
+ggplot(kf_long, aes(x = species, y = Value, fill = Site)) +
+  geom_bar(stat = "identity", position = "dodge") +  
+  labs(x = "Species", y = "Count", title = "Nombre de degrés par espèce") +
+  theme_minimal()
+
+
+
+ggplot(kf_s7, aes(x = reorder(species, s7), y = s7)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(x = "Species", y = "Count", title = "Species count for Site 7") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```

@@ -1,0 +1,12 @@
+INFO [2024-11-29 10:05:03] $x
+INFO [2024-11-29 10:05:03] list(fagaceae, pinaceae, ericaceae, other_families)
+INFO [2024-11-29 10:05:03] 
+INFO [2024-11-29 10:05:03] $category.names
+INFO [2024-11-29 10:05:03] c("Fagaceae", "Pinaceae", "Ericaceae", "Other families")
+INFO [2024-11-29 10:05:03] 
+INFO [2024-11-29 10:05:03] $filename
+INFO [2024-11-29 10:05:03] NULL
+INFO [2024-11-29 10:05:03] 
+INFO [2024-11-29 10:05:03] $output
+INFO [2024-11-29 10:05:03] [1] FALSE
+INFO [2024-11-29 10:05:03] 
