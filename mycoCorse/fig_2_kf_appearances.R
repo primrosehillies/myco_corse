@@ -339,3 +339,6 @@ figure_kf <- ggarrange(
 figure_kf
 
 fig_s1 <- plot_kf_family
+
+plot_kf_family
+

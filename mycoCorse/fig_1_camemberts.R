@@ -102,7 +102,7 @@ colors_camembert <- c(
 )
 
 
-ggplot(count_for_plot, aes(x = "", y = count, fill = Famille)) +
+plot_fam_all <- ggplot(count_for_plot, aes(x = "", y = count, fill = Famille)) +
   geom_bar(stat = "identity", width = 1) +
   coord_polar("y", start = 0) +
   scale_fill_manual(values = colors_camembert) +
@@ -110,18 +110,7 @@ ggplot(count_for_plot, aes(x = "", y = count, fill = Famille)) +
   labs(fill = "Family") +
   theme(axis.text.x = element_blank(), axis.title.x = element_blank(), axis.title.y = element_blank())
 
-
-ggplot(count_family_asco_basidio, aes(x="", y=count, fill=Famille)) +
-  geom_bar(stat="identity", width=1) +
-  coord_polar("y", start=0) +
-  # geom_text(aes(label = paste0(perc, "%")), position = position_stack(vjust=0.5)) +
-  labs(x = NULL, y = NULL, fill = NULL) # +
-  # scale_fill_manual(values = c("Ascomycète" = "#f8766dff", 
-  #                              "Basidiomycète" = "#00bfc4ff", 
-  #                              "Mucoromycète" = "#6800d1ff"))
-
-
-
+plot_fam_all
 
 
 
@@ -171,6 +160,8 @@ plot_phy_14 <- ggplot(count_phylum_s14, aes(x="", y=count, fill=Phylum)) +
                                "Basidiomycète" = "#00bfc4ff", 
                                "Mucoromycète" = "#6800d1ff"))
 
+plot_phy_14
+
 
 #####Site 15####
 count_phylum_s15 <- count_phylum_s15 %>%
@@ -186,8 +177,7 @@ plot_phy_15 <- ggplot(count_phylum_s15, aes(x="", y=count, fill=Phylum)) +
                                "Basidiomycète" = "#00bfc4ff", 
                                "Mucoromycète" = "#6800d1ff"))
 
-plot_phy <- ggarrange(plot_phy_all, plot_phy_7, plot_phy_14, plot_phy_15, ncol = 2, nrow = 2)
-plot_phy
+plot_phy_15
 
 
 
@@ -199,45 +189,3 @@ plot_phy
 
 
 
-
-
-
-
-
-
-
-# Sample data frame
-df <- data.frame(
-  Family = c("Russulaceae", "Thelephoraceae", "Hydnangiaceae", 
-             "Other Basidiomycetes", "Dothydeomycetes", "Myxotrichaceae", 
-             "Pyronemataceae", "Helotiales", "Other Ascomycetes"),
-  Count = c(300, 200, 100, 150, 180, 250, 130, 170, 210)
-)
-
-# Set custom order
-df$Family <- factor(df$Family, levels = c(
-  "Russulaceae", "Thelephoraceae", "Hydnangiaceae", "Other Basidiomycetes",
-  "Dothydeomycetes", "Myxotrichaceae", "Pyronemataceae", "Helotiales", "Other Ascomycetes"
-))
-
-# Define custom colors
-custom_colors <- c(
-  "Russulaceae" = "#1f78b4", # Blue
-  "Thelephoraceae" = "#ff7f00", # Orange
-  "Hydnangiaceae" = "#33a02c", # Green
-  "Other Basidiomycetes" = "#e31a1c", # Red
-  "Dothydeomycetes" = "#6a3d9a", # Purple
-  "Myxotrichaceae" = "#b15928", # Brown
-  "Pyronemataceae" = "#fdbf6f", # Peach
-  "Helotiales" = "#fb9a99", # Pink
-  "Other Ascomycetes" = "#a6cee3"  # Light Blue
-)
-
-# Plot
-ggplot(df, aes(x = "", y = Count, fill = Family)) +
-  geom_bar(stat = "identity", width = 1) +
-  coord_polar("y", start = 0) +
-  scale_fill_manual(values = custom_colors) +
-  theme_minimal() +
-  labs(fill = "Family") +
-  theme(axis.text.x = element_blank(), axis.title.x = element_blank(), axis.title.y = element_blank())

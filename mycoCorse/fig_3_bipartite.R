@@ -1,4 +1,4 @@
-####Tous sites confondus####
+####All sites####
 edge <- ess_pres_long %>%
   filter(presence == 1) %>%
   select(-presence) %>%
@@ -77,7 +77,7 @@ V(net_1)$label <- ifelse(V(net_1)$name %in% from_vertices, vertex_labels[V(net_1
 
 
 
-
+#####Plotting####
 
 
 plot(net_1, layout = layout)

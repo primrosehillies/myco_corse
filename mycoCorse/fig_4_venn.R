@@ -1,6 +1,6 @@
 #####Venn diagram####
 library(VennDiagram)
-
+library(ggVennDiagram)
 
 
 essence_presence_casta
@@ -17,16 +17,6 @@ for (tree in rownames(essence_presence_casta)) {
 
 casta_fungi <- lapply(casta_fungi, as.data.frame)
 
-
-venn <- venn.diagram(
-  x = fungi_sets,  # Use the list of fungi sets
-  category.names = names(casta_fungi),  # Use tree species names as labels
-  filename = NULL,  # Don't save to file
-  output = FALSE    # Return the object
-)
-
-# Draw the Venn diagram
-grid.draw(venn)
 
 
 
@@ -80,3 +70,13 @@ venn_casta <- venn.diagram(
   cat.fontfamily = "sans"
 )
 grid.draw(venn_casta)
+
+
+upset <- list(Fagaceae = fagaceae, 
+              Pinaceae = pinaceae, 
+              Ericaceae = ericaceae, 
+              Other_families = other_families)
+venn <- Venn(upset)
+plot_upset(venn)
+
+
