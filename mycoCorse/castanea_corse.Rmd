@@ -734,14 +734,20 @@ fagaceae <- fagaceae$fagaceae
 pinaceae <- pinaceae$`Pinus spp.`
 ericaceae <- ericaceae$`Arbutus unedo`
 other_families <- other_families$other_families
+
+
+set_colors <- c("Fagaceae" = "blue", "Pinaceae" = "green", "Ericaceae" = "red", "Other_families" = "purple")
 #####Plotting####
 
-upset <- list(Fagaceae = fagaceae, 
+upset <- list("Other Fagaceae" = fagaceae, 
               Pinaceae = pinaceae, 
               Ericaceae = ericaceae, 
-              Other_families = other_families)
+              "Other Families" = other_families)
 venn <- Venn(upset)
-plot_upset(venn)
+plot_upset(
+  venn,
+  sets.bar.color = set_colors,
+  nintersects = 9)
 ```
 
 
